@@ -6,35 +6,33 @@ public class FollowCurve : MonoBehaviour
     [SerializeField]
     private Transform[] routes;
 
-    private int routeToGo;
     private float tParam;
     private float speedModifier;
-    private bool coroutineAllowed;
+    private bool isMoving;
     private Vector3 objectPosition;
     private Vector3 nextPosition;
-    
-    public enum EasingType { Linear, EaseIn, EaseOut } // escolher o easing
-    public EasingType easingType = EasingType.Linear; 
+
+    public enum EasingType { Linear, EaseIn, EaseOut }
+    public EasingType easingType = EasingType.Linear;
 
     void Start()
     {
-        routeToGo = 0;
         tParam = 0f;
         speedModifier = 0.5f;
-        coroutineAllowed = true;
+        isMoving = false;
     }
 
-    void Update()
+    public void StartMovement(int routeNum)
     {
-        if (coroutineAllowed)
+        if (!isMoving) 
         {
-            StartCoroutine(GoByTheRoute(routeToGo));
+            StartCoroutine(GoByTheRoute(routeNum));
         }
     }
 
-    private IEnumerator GoByTheRoute(int routeNum)
+    public IEnumerator GoByTheRoute(int routeNum)
     {
-        coroutineAllowed = false;
+        isMoving = true;
 
         Vector3 p0 = routes[routeNum].GetChild(0).position;
         Vector3 p1 = routes[routeNum].GetChild(1).position;
@@ -45,31 +43,24 @@ public class FollowCurve : MonoBehaviour
         {
             tParam += Time.deltaTime * speedModifier;
             tParam = Mathf.Clamp(tParam, 0, 1);
-            float easedT = ApplyEasing(tParam);
 
-            easedT = Mathf.Clamp(easedT, 0, 1);
+            float easedT = ApplyEasing(tParam);
 
             objectPosition = Mathf.Pow(1 - easedT, 3) * p0 + 3 * Mathf.Pow(1 - easedT, 2) * easedT * p1 + 3 * (1 - easedT) * Mathf.Pow(easedT, 2) * p2 + Mathf.Pow(easedT, 3) * p3;
 
             float nextT = Mathf.Clamp(tParam + 0.01f, 0, 1);
-            nextPosition = Mathf.Pow(1 - nextT, 3) * p0 + 3 * Mathf.Pow(1 - nextT, 2) * nextT * p1 + 3 * (1 - nextT) * Mathf.Pow(nextT, 2) * p2 + Mathf.Pow(nextT, 3) * p3;
+            float easedNextT = ApplyEasing(nextT);
+
+            nextPosition = Mathf.Pow(1 - easedNextT, 3) * p0 + 3 * Mathf.Pow(1 - easedNextT, 2) * easedNextT * p1 + 3 * (1 - easedNextT) * Mathf.Pow(easedNextT, 2) * p2 + Mathf.Pow(easedNextT, 3) * p3;
 
             transform.position = objectPosition;
-
-            transform.LookAt(nextPosition); // LookAt
+            transform.LookAt(nextPosition);
 
             yield return new WaitForEndOfFrame();
         }
 
         tParam = 0;
-        routeToGo += 1;
-
-        if (routeToGo > routes.Length - 1)
-        {
-            routeToGo = 0;
-        }
-
-        coroutineAllowed = true;
+        isMoving = false;
     }
 
     private float ApplyEasing(float t)
@@ -86,13 +77,13 @@ public class FollowCurve : MonoBehaviour
         }
     }
 
-    private float EaseIn(float t) // começa devagar e acelera
+    private float EaseIn(float t)
     {
-        return t * t;
+        return Mathf.Pow(t, 3); 
     }
 
-    private float EaseOut(float t) // começa rápido e desacelera
+    private float EaseOut(float t)
     {
-        return 1 - Mathf.Pow(1 - t, 0.5f);
+        return 1 - Mathf.Pow(1 - t, 3);
     }
 }
