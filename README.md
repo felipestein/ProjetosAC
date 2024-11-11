@@ -23,3 +23,9 @@ Repositório com os projetos da cadeira de Animação Computadorizada
   - Botão Pause: pausar música;
   - Botão Restart: voltar a música para o início;
   - Botão Quit: Sair do jogo;
+
+-----PROJETO PERSONAGEM ANIMADO-----
+
+- Pasta: PersonagemAnimado
+- Build: O jogo está na pasta build
+- Instruções: As teclas Q, W e E mudam as animações do personagem e a tecla ESC fecha a aplicação
